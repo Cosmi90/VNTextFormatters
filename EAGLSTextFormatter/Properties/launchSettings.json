@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "EAGLSTextFormatter": {
-      "commandName": "Project",
-      "commandLineArgs": "-c 50 -n 3 -p 'D:\\stuff\\concepts\\_H\\h_games\\OLE\\MILK48\\_output\\Script_format' -s sc00a,sc00b"
-    }
-  }
-}
