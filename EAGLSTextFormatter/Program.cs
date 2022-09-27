@@ -128,14 +128,14 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, int nrO
         while (input[currentIndexPosition] != ' ') {
             currentIndexPosition--;
         }
-        input = input.Insert(currentIndexPosition, "……⇒");
-        currentIndexPosition = input.LastIndexOf("……⇒") + 3;
+        input = input.Insert(currentIndexPosition, "………");
+        currentIndexPosition = input.LastIndexOf("………") + 3;
         if (input[currentIndexPosition] == ' ') {
             input = input.Remove(currentIndexPosition, 1);
         }
         string theRest = FormatText(dialogueLineId, input.Substring(currentIndexPosition), charsPerLine, nrOfLines, false);
         input = input.Remove(currentIndexPosition, input.Length - currentIndexPosition) + "\"";
-        int a = theRest.LastIndexOf("\"");
+        int a = theRest.LastIndexOf("\""); // hack of the day
         theRest = theRest.Remove(a, 1);
         input = input + theRest;
     }
@@ -161,7 +161,7 @@ void InvalidArguments() {
 void PrintHelp() {
     Console.WriteLine("EAGLS visual novel game engine text formatter\n" +
         "This tool formats the characters of translated script files by replacing characters\n" +
-        "of incomplete words that are the the right edge of the dialogue lines with (e) new line\n" +
+        "of incomplete words that are at the right edge of the dialogue lines with (e) new line\n" +
         "character in order to better format the text, in case of reaching the dialogue line\n" +
         "limit, it will try to create a new dialogue line with the remainder of the text\n" +
         "\n" +
