@@ -1,6 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 
 bool debug = true;
+bool dryrun = true;
 
 string argNumberOfCharacters = null;
 string argNumberOfLines = null;
@@ -65,27 +67,35 @@ if (argNumberOfCharacters != null && argNumberOfLines != null && argPathToScript
         }
 
         if (File.Exists(fullScriptPath)) {
+            Console.BackgroundColor = ConsoleColor.Red;
             Console.WriteLine("Formatting file: " + fullScriptPath);
+            Console.ResetColor();
 
-            string[] textInFile = File.ReadAllLines(fullScriptPath);
+            string[] textInFile = File.ReadAllLines(fullScriptPath, Encoding.UTF8);
 
-            foreach (string t in textInFile) {
-                Match dialogueLine = Regex.Match(t, @"\&[0-9]{1,5}""(.+)""");
+            int c;
+            int n;
+            // test if -n and -c are indeed convertable to int
+            try {
+                c = Int16.Parse(argNumberOfCharacters);
+                n = Int16.Parse(argNumberOfLines);
+            }
+            catch {
+                InvalidArguments();
+            }
+            c = Int16.Parse(argNumberOfCharacters);
+            n = Int16.Parse(argNumberOfLines);
+
+            for (int i = 0; i < textInFile.Length; i++) {
+                Match dialogueLine = Regex.Match(textInFile[i], @"\&[0-9]{1,5}""(.+?)""");
+                Match dialogueLineId = Regex.Match(textInFile[i], @"\&[0-9]{1,5}");
                 if (dialogueLine.Success) {
-                    if (debug) {
-                        Console.WriteLine(dialogueLine.Groups[1].Value);
-                    }
-
-                    // test if -n and -c are indeed convertable to int
-                    try {
-                        int c = Int16.Parse(argNumberOfCharacters);
-                        int n = Int16.Parse(argNumberOfLines);
-                    }
-                    catch {
-                        InvalidArguments();
-                    }
-
-                    Console.WriteLine(FormatText(dialogueLine.Groups[1].Value, Int16.Parse(argNumberOfCharacters), Int16.Parse(argNumberOfLines)));
+                    if (dialogueLine.Groups[1].Value.Length > c) {
+                        textInFile[i] = FormatText(dialogueLineId.Value, dialogueLine.Groups[1].Value, c, n, debug);
+                        // commit changes by writting the lines to file
+                        if (!dryrun)
+                            File.WriteAllLines(fullScriptPath, textInFile);
+                    } 
                 }
             }
         }
@@ -96,14 +106,45 @@ if (argNumberOfCharacters != null && argNumberOfLines != null && argPathToScript
 }
 #endregion
 
-string FormatText(string input, int charsPerLine, int nrOfLines) {
-    if (input.Length > charsPerLine) {
-        if (input[charsPerLine] == ' ') {
-            Console.WriteLine("LINE has empty on: " + charsPerLine + " character: " + input);
+string FormatText(string dialogueLineId, string input, int charsPerLine, int nrOfLines, bool debug) {
+    int currentIndexPosition = 0;
+    for (int i = 1; i < nrOfLines; i++) {
+        if (input.Length > currentIndexPosition + charsPerLine) {
+            currentIndexPosition += charsPerLine;
+            while (input[currentIndexPosition] != ' ') {
+                currentIndexPosition--;
+            }
+            input = input.Insert(currentIndexPosition, "(e)");
+            currentIndexPosition = input.LastIndexOf("(e)") + 3;
+            if (input[currentIndexPosition] == ' ') {
+                input = input.Remove(currentIndexPosition, 1);
+            }
         }
-    } 
+    }
 
-    return "placeholder";
+    // this executes for dialogue boxes that exceed the charsPerLine * nrOfLines limit
+    if (input.Length > currentIndexPosition + charsPerLine) {
+        currentIndexPosition += charsPerLine - 3; // we want 3 lines to mark the dialogue box ending with " →→"
+        while (input[currentIndexPosition] != ' ') {
+            currentIndexPosition--;
+        }
+        input = input.Insert(currentIndexPosition, "……⇒");
+        currentIndexPosition = input.LastIndexOf("……⇒") + 3;
+        if (input[currentIndexPosition] == ' ') {
+            input = input.Remove(currentIndexPosition, 1);
+        }
+        string theRest = FormatText(dialogueLineId, input.Substring(currentIndexPosition), charsPerLine, nrOfLines, false);
+        input = input.Remove(currentIndexPosition, input.Length - currentIndexPosition) + "\"";
+        int a = theRest.LastIndexOf("\"");
+        theRest = theRest.Remove(a, 1);
+        input = input + theRest;
+    }
+
+    if (debug) {
+        Console.WriteLine(dialogueLineId + "\"" + input + "\"");
+    }
+
+    return dialogueLineId + "\"" + input + "\"";
 }
 
 void FileNotFound() {
