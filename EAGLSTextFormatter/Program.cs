@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 
 bool debug = true;
-bool dryrun = true;
+bool dryrun = false;
 
 string argNumberOfCharacters = null;
 string argNumberOfLines = null;
@@ -38,6 +38,9 @@ for (int i = 0; i < args.Length; i++) {
                 InvalidArguments();
             }
             argListOfScripts = args[i + 1];
+            break;
+        case "--dry-run":
+            dryrun = true;
             break;
     }
 }
@@ -124,7 +127,7 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, int nrO
 
     // this executes for dialogue boxes that exceed the charsPerLine * nrOfLines limit
     if (input.Length > currentIndexPosition + charsPerLine) {
-        currentIndexPosition += charsPerLine - 3; // we want 3 lines to mark the dialogue box ending with " →→"
+        currentIndexPosition += charsPerLine - 3; // we want 3 lines to mark the dialogue box ending with "………"
         while (input[currentIndexPosition] != ' ') {
             currentIndexPosition--;
         }
@@ -170,6 +173,7 @@ void PrintHelp() {
         "-n : number of lines per dialogue box\n" +
         "-p : path to Script files between single quotes\n" +
         "-s : comma separated list of script files that need formatting\n" +
+        "--dry-run : [optional] will only output the changes and not modify the files" +
         "\n" +
         "Example usage: EAGLSTextFormatter.exe -c 50 -n 3 -p 'C:\\path\\to\\scripts' -s sc_a01,sc_a02,sc_a03" +
         "\n");
