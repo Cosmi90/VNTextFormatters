@@ -9,6 +9,8 @@ string argNumberOfLines = null;
 string argPathToScripts = null;
 string argListOfScripts = null;
 
+string separator = "...";
+
 if (args.Length == 0) {
     InvalidArguments();
 }
@@ -127,12 +129,12 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, int nrO
 
     // this executes for dialogue boxes that exceed the charsPerLine * nrOfLines limit
     if (input.Length > currentIndexPosition + charsPerLine) {
-        currentIndexPosition += charsPerLine - 3; // we want 3 lines to mark the dialogue box ending with "………"
+        currentIndexPosition += charsPerLine - 3; // we want 3 lines to mark the dialogue box ending with "..." - see separator
         while (input[currentIndexPosition] != ' ') {
             currentIndexPosition--;
         }
-        input = input.Insert(currentIndexPosition, "………");
-        currentIndexPosition = input.LastIndexOf("………") + 3;
+        input = input.Insert(currentIndexPosition, separator);
+        currentIndexPosition = input.LastIndexOf(separator) + 3;
         if (input[currentIndexPosition] == ' ') {
             input = input.Remove(currentIndexPosition, 1);
         }
@@ -140,6 +142,8 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, int nrO
         input = input.Remove(currentIndexPosition, input.Length - currentIndexPosition) + "\"";
         int a = theRest.LastIndexOf("\""); // hack of the day
         theRest = theRest.Remove(a, 1);
+        int b = theRest.IndexOf("\"") + 1;
+        theRest = theRest.Insert(b, separator);
         input = input + theRest;
     }
 
