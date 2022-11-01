@@ -96,7 +96,14 @@ if (argNumberOfCharacters != null && argNumberOfLines != null && argPathToScript
                 Match dialogueLineId = Regex.Match(textInFile[i], @"\&[0-9]{1,5}");
                 if (dialogueLine.Success) {
                     if (dialogueLine.Groups[1].Value.Length > c) {
-                        textInFile[i] = FormatText(dialogueLineId.Value, dialogueLine.Groups[1].Value, c, n, debug);
+                        string m = null;
+                        if ( i != 0 && textInFile[i - 1].StartsWith("#") ) {
+                            m = textInFile[i - 1];
+                            int a = m.IndexOf("=");
+                            if (a >= 0)
+                                m = m.Substring(0, a);
+                        }
+                        textInFile[i] = FormatText(dialogueLineId.Value, dialogueLine.Groups[1].Value, c, n, m, debug);
                         // commit changes by writting the lines to file
                         if (!dryrun)
                             File.WriteAllLines(fullScriptPath, textInFile);
@@ -111,7 +118,7 @@ if (argNumberOfCharacters != null && argNumberOfLines != null && argPathToScript
 }
 #endregion
 
-string FormatText(string dialogueLineId, string input, int charsPerLine, int nrOfLines, bool debug) {
+string FormatText(string dialogueLineId, string input, int charsPerLine, int nrOfLines, string previousNameLine, bool debug) {
     int currentIndexPosition = 0;
     for (int i = 1; i < nrOfLines; i++) {
         if (input.Length > currentIndexPosition + charsPerLine) {
@@ -138,10 +145,13 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, int nrO
         if (input[currentIndexPosition] == ' ') {
             input = input.Remove(currentIndexPosition, 1);
         }
-        string theRest = FormatText(dialogueLineId, input.Substring(currentIndexPosition), charsPerLine, nrOfLines, false);
+        string theRest = FormatText(dialogueLineId, input.Substring(currentIndexPosition), charsPerLine, nrOfLines, previousNameLine, false);
         input = input.Remove(currentIndexPosition, input.Length - currentIndexPosition) + "\"";
         int a = theRest.LastIndexOf("\""); // hack of the day
         theRest = theRest.Remove(a, 1);
+        if (previousNameLine != null) {
+            theRest = previousNameLine + theRest;
+        }
         int b = theRest.IndexOf("\"") + 1;
         theRest = theRest.Insert(b, separator);
         input = input + theRest;
