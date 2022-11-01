@@ -150,11 +150,11 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, int nrO
         int a = theRest.LastIndexOf("\""); // hack of the day
         theRest = theRest.Remove(a, 1);
         if (previousNameLine != null) {
-            theRest = previousNameLine + theRest;
+            theRest = previousNameLine + "\n" + theRest;
         }
         int b = theRest.IndexOf("\"") + 1;
         theRest = theRest.Insert(b, separator);
-        input = input + theRest;
+        input = input + "\n" + theRest;
     }
 
     if (debug) {
