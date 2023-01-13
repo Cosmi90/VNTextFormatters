@@ -9,6 +9,12 @@ string argPathToScripts = null;
 string argListOfScripts = null;
 string argPathToMessage = null;
 
+var categoryAText = new SortedList<int, string>();
+var categoryBText = new SortedList<int, string>();
+var categoryCText = new SortedList<int, string>();
+
+var finalOutput = new SortedList<int, string>();
+
 if (args.Length == 0) {
     InvalidArguments();
 }
@@ -90,20 +96,64 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
             c = Int16.Parse(argNumberOfCharacters);
 
             for (int i = 0; i < textInFile.Length; i++) {
+                Match diamond = Regex.Match(textInFile[i], @"(^.)");
+                Match textCategory = Regex.Match(textInFile[i], @"^.{1}(.{1})");
+                Match textHash = Regex.Match(textInFile[i], @"^.{2}(.{8})");
                 Match dialogueLine = Regex.Match(textInFile[i], @"(\◇|\◆).{9}(\◇|\◆)(.+)");
                 Match dialogueLineAddress = Regex.Match(textInFile[i], @"((\◇|\◆).{9}(\◇|\◆)).+");
                 if (dialogueLine.Success) {
+                    string text;
+                    int position = int.Parse(textHash.Groups[1].Value, System.Globalization.NumberStyles.HexNumber);
+
                     if (dialogueLine.Groups[3].Value.Length > c) {
-                        textInFile[i] = FormatText(dialogueLineAddress.Groups[1].Value, dialogueLine.Groups[3].Value, c, debug);
+                        text = FormatText(dialogueLineAddress.Groups[1].Value, dialogueLine.Groups[3].Value, c, debug);
+                    }
+                    else {
+                        text = textInFile[i];
+                    }
+
+                    if (diamond.Value == "◇") {
+                        if (textCategory.Groups[1].Value == "A") {
+                            categoryAText.Add(position, text);
+                        }
+                        else if (textCategory.Groups[1].Value == "B") {
+                            categoryBText.Add(position, text);
+                        }
+                        else if (textCategory.Groups[1].Value == "C") {
+                            categoryCText.Add(position, text);
+                        }
                     }
                 }
             }
-            // commit changes by writting the lines to file
-            if (!dryrun)
-                File.AppendAllLines(argPathToMessage, textInFile);
         }
         else {
             FileNotFound();
+        }
+    }
+
+    // commit changes by writting the lines to file
+    if (!dryrun) {
+        //File.AppendAllLines(argPathToMessage, textInFile);
+        foreach (KeyValuePair<int, string> kvp in categoryAText) {
+            using (StreamWriter sw = File.AppendText(argPathToMessage)) {
+                sw.WriteLine(kvp.Value);
+                sw.WriteLine(kvp.Value.Replace("◇", "◆"));
+                sw.WriteLine("");
+            }
+        }
+        foreach (KeyValuePair<int, string> kvp in categoryBText) {
+            using (StreamWriter sw = File.AppendText(argPathToMessage)) {
+                sw.WriteLine(kvp.Value);
+                sw.WriteLine(kvp.Value.Replace("◇", "◆"));
+                sw.WriteLine("");
+            }
+        }
+        foreach (KeyValuePair<int, string> kvp in categoryCText) {
+            using (StreamWriter sw = File.AppendText(argPathToMessage)) {
+                sw.WriteLine(kvp.Value + "\\n");
+                sw.WriteLine(kvp.Value.Replace("◇", "◆") + "\\n");
+                sw.WriteLine("");
+            }
         }
     }
 }
