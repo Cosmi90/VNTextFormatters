@@ -5,7 +5,7 @@ VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EAGLSTextFormatter", "EAGLSTextFormatter\EAGLSTextFormatter.csproj", "{185B139E-8832-4AD0-BAE2-829691202B22}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KaguyaTextFormatter", "..\KaguyaTextFormatter\KaguyaTextFormatter\KaguyaTextFormatter.csproj", "{C225D1D0-07A0-4D1C-BF0F-4C801868C12B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KaguyaTextFormatter", "KaguyaTextFormatter\KaguyaTextFormatter.csproj", "{23F5EF03-E535-43EB-894F-CE81FE77A2A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{185B139E-8832-4AD0-BAE2-829691202B22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{185B139E-8832-4AD0-BAE2-829691202B22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{185B139E-8832-4AD0-BAE2-829691202B22}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C225D1D0-07A0-4D1C-BF0F-4C801868C12B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C225D1D0-07A0-4D1C-BF0F-4C801868C12B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C225D1D0-07A0-4D1C-BF0F-4C801868C12B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C225D1D0-07A0-4D1C-BF0F-4C801868C12B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23F5EF03-E535-43EB-894F-CE81FE77A2A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23F5EF03-E535-43EB-894F-CE81FE77A2A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23F5EF03-E535-43EB-894F-CE81FE77A2A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23F5EF03-E535-43EB-894F-CE81FE77A2A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
