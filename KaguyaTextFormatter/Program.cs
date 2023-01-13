@@ -153,7 +153,7 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
         }
         foreach (KeyValuePair<int, string> kvp in categoryCText) {
             using (StreamWriter sw = File.AppendText(argPathToMessage)) {
-                // don't add new line to special characters
+                // don't add new line to special addresses
                 if (ignoredAddresses.Contains(kvp.Key.ToString("X8"))) {
                     sw.WriteLine(kvp.Value);
                     sw.WriteLine(kvp.Value.Replace("◇", "◆"));
@@ -180,10 +180,6 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, bool de
                 //currentIndexPosition--;
                 break;
             }
-            //else if (input[currentIndexPosition] == '』') {
-            //    currentIndexPosition++;
-            //    break;
-            //}
             else {
                 currentIndexPosition--;
             }
