@@ -7,13 +7,12 @@ bool dryrun = false;
 string argNumberOfCharacters = null;
 string argPathToScripts = null;
 string argListOfScripts = null;
+string argListOfIgnoredAddresses = null;
 string argPathToMessage = null;
 
 var categoryAText = new SortedList<int, string>();
 var categoryBText = new SortedList<int, string>();
 var categoryCText = new SortedList<int, string>();
-
-var finalOutput = new SortedList<int, string>();
 
 if (args.Length == 0) {
     InvalidArguments();
@@ -38,6 +37,9 @@ for (int i = 0; i < args.Length; i++) {
                 InvalidArguments();
             }
             argListOfScripts = args[i + 1];
+            break;
+        case "-i":
+            argListOfIgnoredAddresses = args[i + 1];
             break;
         case "-m":
             if (argPathToMessage != null) {
@@ -67,6 +69,7 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
     File.Delete(argPathToMessage);
 
     string[] scriptFiles = argListOfScripts.Split(',');
+    List<string> ignoredAddresses = argListOfIgnoredAddresses.Split(',').ToList();
 
     foreach (string s in scriptFiles) {
         string fullScriptPath;
@@ -150,9 +153,17 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
         }
         foreach (KeyValuePair<int, string> kvp in categoryCText) {
             using (StreamWriter sw = File.AppendText(argPathToMessage)) {
-                sw.WriteLine(kvp.Value + "\\n");
-                sw.WriteLine(kvp.Value.Replace("◇", "◆") + "\\n");
-                sw.WriteLine("");
+                // don't add new line to special characters
+                if (ignoredAddresses.Contains(kvp.Key.ToString("X8"))) {
+                    sw.WriteLine(kvp.Value);
+                    sw.WriteLine(kvp.Value.Replace("◇", "◆"));
+                    sw.WriteLine("");
+                }
+                else {
+                    sw.WriteLine(kvp.Value + "\\n");
+                    sw.WriteLine(kvp.Value.Replace("◇", "◆") + "\\n");
+                    sw.WriteLine("");
+                }
             }
         }
     }
@@ -213,6 +224,7 @@ void PrintHelp() {
         "-c : number of characters per line\n" +
         "-p : path to Script files between single quotes\n" +
         "-s : comma separated list of script files that need formatting\n" +
+        "-i : comma separated list of hex addresses that should be ignored, e.g. ending markers\n" +
         "-m : path to message.txt file for conversion to message.dat\n" +
         "--dry-run : [optional] will only output the changes and not modify the files" +
         "\n" +
