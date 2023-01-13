@@ -156,9 +156,8 @@ void InvalidArguments() {
 void PrintHelp() {
     Console.WriteLine("Atelier Kaguya visual novel game engine text formatter\n" +
         "This tool formats the characters of translated script files by replacing characters\n" +
-        "of incomplete words that are at the right edge of the dialogue lines with (e) new line\n" +
-        "character in order to better format the text, in case of reaching the dialogue line\n" +
-        "limit, it will try to create a new dialogue line with the remainder of the text\n" +
+        "of incomplete words that are at the right edge of the dialogue lines with \\n new line\n" +
+        "character in order to better format the text\n" +
         "\n" +
         "To use this tool:\n" +
         "-c : number of characters per line\n" +
