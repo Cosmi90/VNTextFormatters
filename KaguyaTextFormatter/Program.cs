@@ -4,9 +4,12 @@ using System.Text.RegularExpressions;
 bool debug = true;
 bool dryrun = false;
 
+int kaguyaEngStringLowerLimit = 140;
+
 string argNumberOfCharacters = null;
 string argPathToScripts = null;
 string argListOfScripts = null;
+string argListOfScriptsToIgnore = null;
 string argListOfIgnoredAddresses = null;
 string argPathToMessage = null;
 
@@ -37,6 +40,12 @@ for (int i = 0; i < args.Length; i++) {
                 InvalidArguments();
             }
             argListOfScripts = args[i + 1];
+            break;
+        case "-n":
+            if (argListOfScriptsToIgnore != null) {
+                InvalidArguments();
+            }
+            argListOfScriptsToIgnore = args[i + 1];
             break;
         case "-i":
             argListOfIgnoredAddresses = args[i + 1];
@@ -69,8 +78,10 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
     File.Delete(argPathToMessage);
 
     string[] scriptFiles = argListOfScripts.Split(',');
+    string[] ignoredScriptFiles = argListOfScriptsToIgnore.Split(',');
     List<string> ignoredAddresses = argListOfIgnoredAddresses.Split(',').ToList();
 
+    // script files
     foreach (string s in scriptFiles) {
         string fullScriptPath;
         if (!File.Exists(argPathToScripts + "\\" + s)) {
@@ -114,6 +125,65 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
                     else {
                         text = textInFile[i];
                     }
+
+                    if (diamond.Value == "◇") {
+                        if (textCategory.Groups[1].Value == "A") {
+                            categoryAText.Add(position, text);
+                        }
+                        else if (textCategory.Groups[1].Value == "B") {
+                            categoryBText.Add(position, text);
+                        }
+                        else if (textCategory.Groups[1].Value == "C") {
+                            categoryCText.Add(position, text);
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            FileNotFound();
+        }
+    }
+
+    // ignored script files
+    foreach (string s in ignoredScriptFiles) {
+        string fullScriptPath;
+        if (!File.Exists(argPathToScripts + "\\" + s)) {
+            fullScriptPath = argPathToScripts + "\\" + s + ".txt";
+        }
+        else {
+            fullScriptPath = argPathToScripts + "\\" + s;
+        }
+
+        if (File.Exists(fullScriptPath)) {
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.WriteLine("Formatting file: " + fullScriptPath);
+            Console.ResetColor();
+
+            string[] textInFile = File.ReadAllLines(fullScriptPath, Encoding.UTF8);
+
+            int c;
+            int n;
+            // test if -n and -c are indeed convertable to int
+            try {
+                c = Int16.Parse(argNumberOfCharacters);
+            }
+            catch {
+                InvalidArguments();
+            }
+            c = Int16.Parse(argNumberOfCharacters);
+
+            for (int i = 0; i < textInFile.Length; i++) {
+                Match diamond = Regex.Match(textInFile[i], @"(^.)");
+                Match textCategory = Regex.Match(textInFile[i], @"^.{1}(.{1})");
+                Match textHash = Regex.Match(textInFile[i], @"^.{2}(.{8})");
+                Match dialogueLine = Regex.Match(textInFile[i], @"(\◇|\◆).{9}(\◇|\◆)(.+)");
+                Match dialogueLineAddress = Regex.Match(textInFile[i], @"((\◇|\◆).{9}(\◇|\◆)).+");
+                if (dialogueLine.Success) {
+                    string text;
+                    int position = int.Parse(textHash.Groups[1].Value, System.Globalization.NumberStyles.HexNumber);
+
+                    text = textInFile[i];
 
                     if (diamond.Value == "◇") {
                         if (textCategory.Groups[1].Value == "A") {
@@ -181,14 +251,24 @@ string FormatText(string dialogueLineId, string input, int charsPerLine, bool de
                 break;
             }
             else {
-                currentIndexPosition--;
+                // this is in order to better fit the text within the text box, if length is bellow 140 order it as usual, if above, order it by incrementing currentIndexPosition
+                if (input.Length > kaguyaEngStringLowerLimit) {
+                    currentIndexPosition++;
+                }
+                else {
+                    currentIndexPosition--;
+                }
             }
+            if (currentIndexPosition >= input.Length)
+                break;
         }
         input = input.Insert(currentIndexPosition, "\\n");
         currentIndexPosition = input.LastIndexOf("\\n") + 2;
         // removes white space at the beginning of new line
-        if (input[currentIndexPosition] == ' ') {
-            input = input.Remove(currentIndexPosition, 1);
+        if (currentIndexPosition < input.Length) {
+            if (input[currentIndexPosition] == ' ') {
+                input = input.Remove(currentIndexPosition, 1);
+            }
         }
     }
 
@@ -220,6 +300,7 @@ void PrintHelp() {
         "-c : number of characters per line\n" +
         "-p : path to Script files between single quotes\n" +
         "-s : comma separated list of script files that need formatting\n" +
+        "-n : comma separated list of script files that are still in japanese and should be ignored\n" +
         "-i : comma separated list of hex addresses that should be ignored, e.g. ending markers\n" +
         "-m : path to message.txt file for conversion to message.dat\n" +
         "--dry-run : [optional] will only output the changes and not modify the files" +
