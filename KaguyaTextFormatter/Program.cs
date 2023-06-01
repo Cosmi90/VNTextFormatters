@@ -42,9 +42,6 @@ for (int i = 0; i < args.Length; i++) {
             argListOfScripts = args[i + 1];
             break;
         case "-n":
-            if (argListOfScriptsToIgnore != null) {
-                InvalidArguments();
-            }
             argListOfScriptsToIgnore = args[i + 1];
             break;
         case "-i":
@@ -78,7 +75,10 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
     File.Delete(argPathToMessage);
 
     string[] scriptFiles = argListOfScripts.Split(',');
-    string[] ignoredScriptFiles = argListOfScriptsToIgnore.Split(',');
+    string[] ignoredScriptFiles = null;
+    if (argListOfScriptsToIgnore != null) {
+        ignoredScriptFiles = argListOfScriptsToIgnore.Split(',');
+    }
     List<string> ignoredAddresses = argListOfIgnoredAddresses.Split(',').ToList();
 
     // script files
@@ -146,61 +146,63 @@ if (argNumberOfCharacters != null && argPathToScripts != null && argListOfScript
     }
 
     // ignored script files
-    foreach (string s in ignoredScriptFiles) {
-        string fullScriptPath;
-        if (!File.Exists(argPathToScripts + "\\" + s)) {
-            fullScriptPath = argPathToScripts + "\\" + s + ".txt";
-        }
-        else {
-            fullScriptPath = argPathToScripts + "\\" + s;
-        }
+    if (ignoredScriptFiles != null) {
+        foreach (string s in ignoredScriptFiles) {
+            string fullScriptPath;
+            if (!File.Exists(argPathToScripts + "\\" + s)) {
+                fullScriptPath = argPathToScripts + "\\" + s + ".txt";
+            }
+            else {
+                fullScriptPath = argPathToScripts + "\\" + s;
+            }
 
-        if (File.Exists(fullScriptPath)) {
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.WriteLine("Formatting file: " + fullScriptPath);
-            Console.ResetColor();
+            if (File.Exists(fullScriptPath)) {
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.WriteLine("Formatting file: " + fullScriptPath);
+                Console.ResetColor();
 
-            string[] textInFile = File.ReadAllLines(fullScriptPath, Encoding.UTF8);
+                string[] textInFile = File.ReadAllLines(fullScriptPath, Encoding.UTF8);
 
-            int c;
-            int n;
-            // test if -n and -c are indeed convertable to int
-            try {
+                int c;
+                int n;
+                // test if -n and -c are indeed convertable to int
+                try {
+                    c = Int16.Parse(argNumberOfCharacters);
+                }
+                catch {
+                    InvalidArguments();
+                }
                 c = Int16.Parse(argNumberOfCharacters);
-            }
-            catch {
-                InvalidArguments();
-            }
-            c = Int16.Parse(argNumberOfCharacters);
 
-            for (int i = 0; i < textInFile.Length; i++) {
-                Match diamond = Regex.Match(textInFile[i], @"(^.)");
-                Match textCategory = Regex.Match(textInFile[i], @"^.{1}(.{1})");
-                Match textHash = Regex.Match(textInFile[i], @"^.{2}(.{8})");
-                Match dialogueLine = Regex.Match(textInFile[i], @"(\◇|\◆).{9}(\◇|\◆)(.+)");
-                Match dialogueLineAddress = Regex.Match(textInFile[i], @"((\◇|\◆).{9}(\◇|\◆)).+");
-                if (dialogueLine.Success) {
-                    string text;
-                    int position = int.Parse(textHash.Groups[1].Value, System.Globalization.NumberStyles.HexNumber);
+                for (int i = 0; i < textInFile.Length; i++) {
+                    Match diamond = Regex.Match(textInFile[i], @"(^.)");
+                    Match textCategory = Regex.Match(textInFile[i], @"^.{1}(.{1})");
+                    Match textHash = Regex.Match(textInFile[i], @"^.{2}(.{8})");
+                    Match dialogueLine = Regex.Match(textInFile[i], @"(\◇|\◆).{9}(\◇|\◆)(.+)");
+                    Match dialogueLineAddress = Regex.Match(textInFile[i], @"((\◇|\◆).{9}(\◇|\◆)).+");
+                    if (dialogueLine.Success) {
+                        string text;
+                        int position = int.Parse(textHash.Groups[1].Value, System.Globalization.NumberStyles.HexNumber);
 
-                    text = textInFile[i];
+                        text = textInFile[i];
 
-                    if (diamond.Value == "◇") {
-                        if (textCategory.Groups[1].Value == "A") {
-                            categoryAText.Add(position, text);
-                        }
-                        else if (textCategory.Groups[1].Value == "B") {
-                            categoryBText.Add(position, text);
-                        }
-                        else if (textCategory.Groups[1].Value == "C") {
-                            categoryCText.Add(position, text);
+                        if (diamond.Value == "◇") {
+                            if (textCategory.Groups[1].Value == "A") {
+                                categoryAText.Add(position, text);
+                            }
+                            else if (textCategory.Groups[1].Value == "B") {
+                                categoryBText.Add(position, text);
+                            }
+                            else if (textCategory.Groups[1].Value == "C") {
+                                categoryCText.Add(position, text);
+                            }
                         }
                     }
                 }
             }
-        }
-        else {
-            FileNotFound();
+            else {
+                FileNotFound();
+            }
         }
     }
 
